@@ -1,1 +1,17 @@
+import streamlit as st
+
+st.title("起重机计算书自动生成")
+
+load = st.number_input("载荷重量 (吨)", min_value=0.0, value=10.0)
+span = st.number_input("跨度 (米)", min_value=0.0, value=20.0)
+
+if st.button("生成计算书"):
+    result = load * span
+
+    with open("templates/crane-template.md", encoding="utf-8") as f:
+        template = f.read()
+
+    content = template.format(load=load, span=span, result=result)
+
+    st.download_button("下载计算书", content, file_name="crane-report.md")
 
