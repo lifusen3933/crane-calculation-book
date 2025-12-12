@@ -1,17 +1,106 @@
-import streamlit as st
+#!/usr/bin/env python3
+"""
+起重机设计计算书自动生成系统
+主程序入口
+"""
+import sys
+import os
 
-st.title("起重机计算书自动生成")
 
-load = st.number_input("载荷重量 (吨)", min_value=0.0, value=10.0)
-span = st.number_input("跨度 (米)", min_value=0.0, value=20.0)
+def print_banner():
+    """打印欢迎横幅"""
+    print("\n" + "=" * 80)
+    print("  🏗️  起重机设计计算书自动生成系统")
+    print("     Crane Design Calculation Book Generator")
+    print("=" * 80)
+    print()
 
-if st.button("生成计算书"):
-    result = load * span
 
-    with open("templates/crane-template.md", encoding="utf-8") as f:
-        template = f.read()
+def main():
+    """主函数"""
+    print_banner()
 
-    content = template.format(load=load, span=span, result=result)
+    if len(sys.argv) > 1:
+        # 命令行参数模式
+        interface = sys.argv[1].lower()
+    else:
+        # 交互式选择
+        print("请选择界面类型:")
+        print("1. 命令行界面 (CLI)")
+        print("2. Web界面 (Streamlit)")
+        print("3. 查看帮助")
+        print()
+        choice = input("选择 (1-3): ").strip()
 
-    st.download_button("下载计算书", content, file_name="crane-report.md")
+        if choice == '3' or choice.lower() in ['help', 'h', '--help', '-h']:
+            show_help()
+            return
+        elif choice == '2':
+            interface = 'web'
+        else:
+            interface = 'cli'
+
+    # 启动相应界面
+    if interface in ['cli', '1']:
+        print("\n启动命令行界面...")
+        from ui.cli_interface import main as cli_main
+        cli_main()
+    elif interface in ['web', '2', 'streamlit']:
+        print("\n启动Web界面...")
+        print("浏览器将自动打开 http://localhost:8501")
+        print("按 Ctrl+C 停止服务器")
+        print()
+        from ui.web_interface import main as web_main
+        web_main()
+    else:
+        print(f"\n❌ 错误: 未知的界面类型 '{interface}'")
+        print("请使用: python main.py cli 或 python main.py web")
+        show_help()
+
+
+def show_help():
+    """显示帮助信息"""
+    print("\n" + "=" * 80)
+    print("帮助信息")
+    print("=" * 80)
+    print("""
+使用方法:
+    python main.py [界面类型]
+
+界面类型:
+    cli         命令行界面 (交互式输入)
+    web         Web界面 (需要Streamlit)
+
+示例:
+    python main.py cli          # 启动命令行界面
+    python main.py web          # 启动Web界面
+
+系统功能:
+    - 起重机载荷分析
+    - 结构强度计算
+    - 机构设计计算
+    - 稳定性分析
+    - 自动生成计算书
+
+技术特点:
+    - 遵循GB/T 3811-2008《起重机设计规范》
+    - 支持桥式、门式、半门式起重机
+    - 自动生成完整计算书文档
+
+更多信息:
+    - 查看 README.md 了解详细说明
+    - 查看 系统设计文档.md 了解技术架构
+
+    """)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n\n👋 程序已退出")
+    except Exception as e:
+        print(f"\n❌ 程序发生错误: {e}")
+        import traceback
+        traceback.print_exc()
 
