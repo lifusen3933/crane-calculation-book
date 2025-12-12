@@ -1,10 +1,95 @@
-# 起重机设计计算书
+#!/usr/bin/env python3
+"""
+演示脚本 - 快速生成起重机设计计算书
+"""
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-## 设计参数
+from models.crane_specs import CraneSpecs
+from crane_calculator.calculation_engine import CalculationEngine
 
-- 载荷重量：{load} t
-- 跨度：{span} m
 
-## 计算结果
+def run_demo():
+    """运行演示"""
+    print("\n" + "=" * 80)
+    print("  🏗️  起重机设计计算书自动生成系统 - 演示")
+    print("=" * 80)
 
-- 结果值：{result:.2f}
+    # 创建一个示例起重机
+    specs = CraneSpecs(
+        crane_type="桥式",
+        rated_capacity=10.0,
+        span=20.0,
+        lifting_height=9.0,
+        work_level="A3",
+        lifting_speed=8.0,
+        trolley_speed=20.0,
+        crane_speed=30.0,
+        trolley_weight=1.5,
+        crane_self_weight=12.0,
+        gantry_weight=None,
+        wind_speed=25.0,
+        ambient_temp_min=-20,
+        ambient_temp_max=40,
+        power_supply="380V/50Hz",
+        control_type="驾驶室"
+    )
+
+    print("\n📋 起重机参数:")
+    print(f"   类型: {specs.crane_type}")
+    print(f"   额定起重量: {specs.rated_capacity} 吨")
+    print(f"   跨度: {specs.span} 米")
+    print(f"   起升高度: {specs.lifting_height} 米")
+    print(f"   工作级别: {specs.work_level}")
+
+    # 执行计算
+    print("\n🚀 正在执行计算...")
+    engine = CalculationEngine()
+    summary = engine.run_calculation(specs)
+
+    # 生成计算书
+    print("\n📄 正在生成计算书...")
+    report = engine.generate_full_report(summary, specs)
+
+    # 保存文件
+    filename = f"demo_calculation_{specs.crane_type}_{specs.rated_capacity}t_{specs.span}m.md"
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write(report)
+
+    print(f"\n✅ 演示完成!")
+    print(f"   计算书已保存到: {filename}")
+    print(f"   文件大小: {len(report)} 字符")
+
+    # 显示主要结果
+    print("\n📊 主要计算结果:")
+    print(f"   主梁弯曲应力: {summary.main_beam.bending_stress:.1f} MPa (许用: 235 MPa)")
+    print(f"   主梁剪应力: {summary.main_beam.shear_stress:.1f} MPa (许用: 136 MPa)")
+    print(f"   主梁最大挠度: {summary.main_beam.max_deflection:.1f} mm")
+    print(f"   稳定系数: {summary.stability.stability_factor:.2f} (要求: ≥ 1.4)")
+    print(f"   起升电机: {summary.hoisting_motor.motor_type}")
+    print(f"   小车运行电机: {summary.trolley_motor.motor_type}")
+    print(f"   大车运行电机: {summary.crane_motor.motor_type}")
+
+    # 检查结果
+    if summary.critical_issues:
+        print("\n⚠️  发现问题:")
+        for issue in summary.critical_issues:
+            print(f"   - {issue}")
+    else:
+        print("\n✓ 所有计算项目均满足要求!")
+
+    print("\n" + "=" * 80)
+    print("演示结束。您可以使用以下命令启动完整系统:")
+    print("  python main.py cli   # 命令行界面")
+    print("  python main.py web   # Web界面")
+    print("=" * 80)
+
+
+if __name__ == "__main__":
+    try:
+        run_demo()
+    except Exception as e:
+        print(f"\n❌ 演示过程中发生错误: {e}")
+        import traceback
+        traceback.print_exc()
